@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "./error.h"
 #include "./value.h"
 
 /**Value class
@@ -65,6 +66,18 @@ std::string SymbolValue::toString() const {
 /**PairValue class
  * Methods for derived class PairValue
  */
+PairValue::PairValue(const std::vector<ValuePtr>& values) : Value(ValueType::PAIR) {
+    if (values.empty()) {
+        throw SyntaxError("Cannot create a pair from empty list");
+    }
+    car = values[0];
+    if (values.size() == 1) {
+        cdr = std::make_shared<NilValue>();
+    } else {
+        cdr = std::make_shared<PairValue>(std::vector<ValuePtr>(values.begin() + 1, values.end()));
+    }
+}
+
 std::string PairValue::toString() const {
     std::stringstream ss;
     ss << "(";

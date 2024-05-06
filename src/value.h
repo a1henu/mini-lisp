@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class Value;
 using ValuePtr = std::shared_ptr<Value>;
@@ -81,6 +82,7 @@ class PairValue : public Value {
 
 public:
     PairValue(ValuePtr car, ValuePtr cdr) : Value(ValueType::PAIR), car{car}, cdr{cdr} {}
+    PairValue(const std::vector<ValuePtr>& values);
 
     std::string toString() const override;
 };
