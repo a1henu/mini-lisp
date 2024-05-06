@@ -2,6 +2,7 @@
 #define VALUE_H
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,9 @@ public:
     ValueType getType() const;
 
     virtual std::string toString() const;
+    virtual std::vector<ValuePtr> toVector() const;
+
+    virtual std::optional<std::string> asSymbol() const;
 };
 
 
@@ -73,6 +77,8 @@ public:
     SymbolValue(const std::string& value) : Value(ValueType::SYMBOL), value{value} {}
 
     std::string toString() const override;
+
+    std::optional<std::string> asSymbol() const override;
 };
 
 
@@ -85,6 +91,7 @@ public:
     PairValue(const std::vector<ValuePtr>& values);
 
     std::string toString() const override;
+    std::vector<ValuePtr> toVector() const override;
 };
 
 

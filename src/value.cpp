@@ -16,6 +16,14 @@ std::string Value::toString() const {
     return "";
 }
 
+std::vector<ValuePtr> Value::toVector() const {
+    throw LispError("Cannot convert to vector");
+}
+
+std::optional<std::string> Value::asSymbol() const {
+    return std::nullopt;
+}
+
 
 /**BooleanValue class
  * Methods for derived class BooleanValue 
@@ -62,6 +70,10 @@ std::string SymbolValue::toString() const {
     return value;
 }
 
+std::optional<std::string> SymbolValue::asSymbol() const {
+    return value;
+}
+
 
 /**PairValue class
  * Methods for derived class PairValue
@@ -98,4 +110,21 @@ std::string PairValue::toString() const {
 
     ss << ")";
     return ss.str();
+}
+
+std::vector<ValuePtr> PairValue::toVector() const {
+    std::vector<ValuePtr> result;
+    auto cur = this;
+    while(cur) {
+        result.push_back(cur->car);
+        if (cur->cdr->getType() == ValueType::NIL) {
+            cur = nullptr;
+        } else if (cur->cdr->getType() == ValueType::PAIR) {
+            cur = static_cast<PairValue*>(cur->cdr.get());
+        } else {
+            result.push_back(cur->cdr);
+            cur = nullptr;
+        }
+    }
+    return result;
 }

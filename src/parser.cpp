@@ -65,7 +65,7 @@ ValuePtr Parser::parse() {
     }
 
     default:
-        throw SyntaxError("Unimplemented");
+        throw SyntaxError("Unimplemented.");
         break;
     }
 }
