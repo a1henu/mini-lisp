@@ -10,6 +10,12 @@ using SpecialFormType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
 
 ValuePtr defineForm(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr quoteForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env);
+
+ValuePtr ifForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr andForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr orForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr lambdaForm(const std::vector<ValuePtr>& params, EvalEnv& env);
 
 extern std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS;
 

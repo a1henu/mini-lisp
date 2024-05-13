@@ -17,6 +17,7 @@ enum class ValueType {
     SYMBOL,
     PAIR,
     BUILTIN,
+    LAMBDA
 };
 
 class Value {
@@ -32,7 +33,7 @@ public:
 
     bool isType(ValueType type) const;
 
-    virtual std::optional<bool> asBoolean() const;
+    virtual bool asBoolean() const;
     virtual std::optional<double> asNumber() const;
     virtual std::optional<std::string> asString() const;
     virtual std::optional<std::string> asSymbol() const;
@@ -47,7 +48,7 @@ public:
 
     std::string toString() const override;
 
-    std::optional<bool> asBoolean() const override;
+    bool asBoolean() const override;
 };
 
 
@@ -119,6 +120,15 @@ public:
     BuiltinProcValue(BuiltinFuncType* func) : Value(ValueType::BUILTIN), func{func} {}
 
     ValuePtr call(const std::vector<ValuePtr>& args) const;
+
+    std::string toString() const override;
+};
+
+class LambdaValue : public Value {
+    std::vector<std::string> params;
+    std::vector<ValuePtr> body;
+public:
+    LambdaValue(const std::vector<std::string>& params, std::vector<ValuePtr> body) : Value(ValueType::LAMBDA), params{params}, body{body} {}
 
     std::string toString() const override;
 };

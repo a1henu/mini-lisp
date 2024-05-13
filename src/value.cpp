@@ -24,8 +24,8 @@ bool Value::isType(ValueType type) const {
     return this->type == type;
 }
 
-std::optional<bool> Value::asBoolean() const {
-    return std::nullopt;
+bool Value::asBoolean() const {
+    return true;
 }
 
 std::optional<double> Value::asNumber() const {
@@ -48,7 +48,7 @@ std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
 
-std::optional<bool> BooleanValue::asBoolean() const {
+bool BooleanValue::asBoolean() const {
     return value;
 }
 
@@ -178,5 +178,13 @@ ValuePtr BuiltinProcValue::call(const std::vector<ValuePtr>& args) const {
 }
 
 std::string BuiltinProcValue::toString() const {
+    return "#<procedure>";
+}
+
+
+/**LambdaValue class
+ * Methods for derived class LambdaValue 
+ */
+std::string LambdaValue::toString() const {
     return "#<procedure>";
 }
