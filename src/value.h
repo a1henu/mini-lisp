@@ -124,11 +124,19 @@ public:
     std::string toString() const override;
 };
 
+class EvalEnv;
 class LambdaValue : public Value {
     std::vector<std::string> params;
     std::vector<ValuePtr> body;
+    std::shared_ptr<EvalEnv> env;
+
 public:
-    LambdaValue(const std::vector<std::string>& params, std::vector<ValuePtr> body) : Value(ValueType::LAMBDA), params{params}, body{body} {}
+    LambdaValue(const std::vector<std::string>& params, 
+                const std::vector<ValuePtr>& body, 
+                std::shared_ptr<EvalEnv> env) : 
+        Value(ValueType::LAMBDA), params{params}, body{body}, env{env} {}
+
+    ValuePtr call(const std::vector<ValuePtr>& args, EvalEnv& env) const;
 
     std::string toString() const override;
 };

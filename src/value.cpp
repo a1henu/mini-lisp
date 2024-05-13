@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "./error.h"
+#include "./eval_env.h"
 #include "./value.h"
 
 /**Value class
@@ -185,6 +186,15 @@ std::string BuiltinProcValue::toString() const {
 /**LambdaValue class
  * Methods for derived class LambdaValue 
  */
+ValuePtr LambdaValue::call(const std::vector<ValuePtr>& args, EvalEnv& env) const {
+    auto childEnv = this->env->createChild(params, args);
+    ValuePtr lastValue;
+    for (const auto& expr : body) {
+        lastValue = childEnv->eval(expr);
+    }
+    return lastValue;
+}
+
 std::string LambdaValue::toString() const {
     return "#<procedure>";
 }

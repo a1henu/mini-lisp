@@ -266,7 +266,7 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue> > builtins::ma
 };
 
 ValuePtr builtins::addVal(const std::vector<ValuePtr>& params) {
-    int result = 0;
+    double result = 0;
     for (const auto& i : params) {
         if (!i->isType(ValueType::NUMERIC)) {
             throw LispError("Cannot add a non-numeric value.");

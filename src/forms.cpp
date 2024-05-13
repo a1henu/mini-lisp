@@ -151,6 +151,7 @@ ValuePtr lambdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
 
     return std::make_shared<LambdaValue>(
         params,
-        body
+        body, 
+        env.shared_from_this()
     );
 }
