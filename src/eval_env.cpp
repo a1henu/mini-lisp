@@ -69,7 +69,6 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
 
     } else if (expr->isType(ValueType::PAIR)) {
 
-        using namespace std::literals;
         auto pairList = static_cast<PairValue*>(expr.get());
         auto exprs = pairList->toVector();
 
