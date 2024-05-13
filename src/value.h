@@ -16,6 +16,7 @@ enum class ValueType {
     NIL,
     SYMBOL,
     PAIR,
+    BUILTIN,
 };
 
 class Value {
@@ -29,6 +30,11 @@ public:
     virtual std::string toString() const;
     virtual std::vector<ValuePtr> toVector() const;
 
+    bool isType(ValueType type) const;
+
+    virtual std::optional<bool> asBoolean() const;
+    virtual std::optional<double> asNumber() const;
+    virtual std::optional<std::string> asString() const;
     virtual std::optional<std::string> asSymbol() const;
 };
 
@@ -40,6 +46,8 @@ public:
     BooleanValue(bool value) : Value(ValueType::BOOLEAN), value{value} {}
 
     std::string toString() const override;
+
+    std::optional<bool> asBoolean() const override;
 };
 
 
@@ -50,6 +58,8 @@ public:
     NumericValue(double value) : Value(ValueType::NUMERIC), value{value} {}
 
     std::string toString() const override;
+
+    std::optional<double> asNumber() const override;
 };
 
 class StringValue : public Value {
@@ -59,6 +69,8 @@ public:
     StringValue(const std::string& value) : Value(ValueType::STRING), value{value} {}
 
     std::string toString() const override;
+
+    std::optional<std::string> asString() const override;
 };
 
 
@@ -67,6 +79,7 @@ public:
     NilValue() : Value(ValueType::NIL) {}
 
     std::string toString() const override;
+    std::vector<ValuePtr> toVector() const override;
 };
 
 
@@ -92,7 +105,22 @@ public:
 
     std::string toString() const override;
     std::vector<ValuePtr> toVector() const override;
+
+    ValuePtr getCar() const;
+    ValuePtr getCdr() const;
 };
 
+
+class BuiltinProcValue : public Value {
+    using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
+    BuiltinFuncType* func;
+
+public:
+    BuiltinProcValue(BuiltinFuncType* func) : Value(ValueType::BUILTIN), func{func} {}
+
+    ValuePtr call(const std::vector<ValuePtr>& args) const;
+
+    std::string toString() const override;
+};
 
 #endif

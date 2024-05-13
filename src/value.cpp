@@ -20,6 +20,22 @@ std::vector<ValuePtr> Value::toVector() const {
     throw LispError("Cannot convert to vector");
 }
 
+bool Value::isType(ValueType type) const {
+    return this->type == type;
+}
+
+std::optional<bool> Value::asBoolean() const {
+    return std::nullopt;
+}
+
+std::optional<double> Value::asNumber() const {
+    return std::nullopt;
+}
+
+std::optional<std::string> Value::asString() const {
+    return std::nullopt;
+}
+
 std::optional<std::string> Value::asSymbol() const {
     return std::nullopt;
 }
@@ -30,6 +46,10 @@ std::optional<std::string> Value::asSymbol() const {
  */
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
+}
+
+std::optional<bool> BooleanValue::asBoolean() const {
+    return value;
 }
 
 
@@ -44,6 +64,10 @@ std::string NumericValue::toString() const {
     }
 }
 
+std::optional<double> NumericValue::asNumber() const {
+    return value;
+}
+
 
 /**StringValue class
  * Methods for derived class StringValue
@@ -54,12 +78,20 @@ std::string StringValue::toString() const {
     return ss.str();
 }
 
+std::optional<std::string> StringValue::asString() const {
+    return value;
+}
+
 
 /**NilValue class
  * Methods for derived class NilValue
  */
 std::string NilValue::toString() const {
     return "()";
+}
+
+std::vector<ValuePtr> NilValue::toVector() const {
+    return {};
 }
 
 
@@ -97,9 +129,9 @@ std::string PairValue::toString() const {
     auto cur = this;
     while(cur) {
         ss << cur->car->toString();
-        if (cur->cdr->getType() == ValueType::NIL) {
+        if (cur->cdr->isType(ValueType::NIL)) {
             cur = nullptr;
-        } else if (cur->cdr->getType() == ValueType::PAIR) {
+        } else if (cur->cdr->isType(ValueType::PAIR)) {
             ss << " ";
             cur = static_cast<PairValue*>(cur->cdr.get());
         } else {
@@ -117,9 +149,9 @@ std::vector<ValuePtr> PairValue::toVector() const {
     auto cur = this;
     while(cur) {
         result.push_back(cur->car);
-        if (cur->cdr->getType() == ValueType::NIL) {
+        if (cur->cdr->isType(ValueType::NIL)) {
             cur = nullptr;
-        } else if (cur->cdr->getType() == ValueType::PAIR) {
+        } else if (cur->cdr->isType(ValueType::PAIR)) {
             cur = static_cast<PairValue*>(cur->cdr.get());
         } else {
             result.push_back(cur->cdr);
@@ -127,4 +159,24 @@ std::vector<ValuePtr> PairValue::toVector() const {
         }
     }
     return result;
+}
+
+ValuePtr PairValue::getCar() const {
+    return car;
+}
+
+ValuePtr PairValue::getCdr() const {
+    return cdr;
+}
+
+
+/**BuiltinProcValue class
+ * Methods for derived class BuiltinProcValu
+ */
+ValuePtr BuiltinProcValue::call(const std::vector<ValuePtr>& args) const {
+    return func(args);
+}
+
+std::string BuiltinProcValue::toString() const {
+    return "#<procedure>";
 }
