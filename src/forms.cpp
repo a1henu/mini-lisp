@@ -14,9 +14,9 @@ std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS = {
     {"and", andForm},
     {"or", orForm},
     {"lambda", lambdaForm},
-    // {"cond", condForm},
-    // {"let", letForm},
-    // {"begin", beginForm},
+    {"cond", condForm},
+    {"let", letForm},
+    {"begin", beginForm},
     
 };
 
@@ -55,13 +55,14 @@ ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
 
 ValuePtr quasiquote(const ValuePtr& arg, EvalEnv& env) {
     if (arg->isType(ValueType::PAIR)) {
-        if (arg->toVector()[0]->asSymbol().value() == "unquote" || 
-            arg->toVector()[0]->asSymbol().value() == ",") 
-        {
-            if (arg->toVector().size() != 2) {
-                throw LispError("unquote requires exactly one argument.");
+        if (auto symbol = arg->toVector()[0]->asSymbol()) {
+            if (symbol.value() == "unquote" || symbol.value() == ",") {
+                if (arg->toVector().size() != 2) {
+                    throw LispError("unquote requires exactly one argument.");
+                }
+
+                return env.eval(arg->toVector()[1]);
             }
-            return env.eval(arg->toVector()[1]);
         } else {
             std::vector<ValuePtr> result;
             for (const auto& element : arg->toVector()) {
@@ -72,6 +73,7 @@ ValuePtr quasiquote(const ValuePtr& arg, EvalEnv& env) {
     } else {
         return arg;
     }
+    return nullptr;
 }
 
 ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
@@ -154,4 +156,78 @@ ValuePtr lambdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
         body, 
         env.shared_from_this()
     );
+}
+
+
+ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    for (const auto& p : args) {
+        auto arg = static_cast<PairValue*>(p.get());
+        if (arg->toVector().empty()) {
+            throw LispError("empty clause in cond.");
+        }
+
+        ValuePtr result;
+        if (arg->getCar()->asSymbol() == "else") {
+            if (&p != &args.back()) {
+                throw LispError("else clause is not the last clause in cond.");
+            }
+            for (size_t i = 1; i < arg->toVector().size(); i++) {
+                result = env.eval(arg->toVector()[i]);
+            }
+            if (result) {
+                return result;
+            } else {
+                throw LispError("there must be expressions after else.");
+            }
+        }
+
+        ValuePtr condition = env.eval(arg->getCar());
+        if (condition->asBoolean()) {
+            for (size_t i = 1; i < arg->toVector().size(); i++) {
+                result = env.eval(arg->toVector()[i]);
+            }
+            return result ? result : condition;
+        }
+    }
+
+    throw LispError("No true clause in cond.");
+}
+
+ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    if (args.size() < 2) {
+        throw LispError("Let form requires at least two arguments.");
+    }
+
+    std::vector<std::string> identifiers;
+    std::vector<ValuePtr> initialValues;
+    for (const auto& binding : args[0]->toVector()) {
+        if (binding->toVector().size() != 2 || !binding->toVector()[0]->isType(ValueType::SYMBOL)) {
+            throw LispError("Invalid binding in let form.");
+        }
+
+        identifiers.push_back(binding->toVector()[0]->asSymbol().value());
+        initialValues.push_back(env.eval(binding->toVector()[1]));
+    }
+
+    auto childEnv = env.createChild(identifiers, initialValues);
+
+    ValuePtr result;
+    for (size_t i = 1; i < args.size(); i++) {
+        result = childEnv->eval(args[i]);
+    }
+
+    return result;
+}
+
+ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    if (args.size() == 0) {
+        return std::make_shared<NilValue>();
+    }
+
+    ValuePtr result;
+    for (size_t i = 0; i < args.size(); i++) {
+        result = env.eval(args[i]);
+    }
+
+    return result;
 }

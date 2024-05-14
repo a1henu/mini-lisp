@@ -41,6 +41,10 @@ std::optional<std::string> Value::asSymbol() const {
     return std::nullopt;
 }
 
+ValuePtr Value::call(const std::vector<ValuePtr>& args, EvalEnv& env) const {
+    throw LispError("Cannot call this value");
+}
+
 
 /**BooleanValue class
  * Methods for derived class BooleanValue 
@@ -174,8 +178,8 @@ ValuePtr PairValue::getCdr() const {
 /**BuiltinProcValue class
  * Methods for derived class BuiltinProcValu
  */
-ValuePtr BuiltinProcValue::call(const std::vector<ValuePtr>& args) const {
-    return func(args);
+ValuePtr BuiltinProcValue::call(const std::vector<ValuePtr>& args, EvalEnv& env) const {
+    return func(args, env);
 }
 
 std::string BuiltinProcValue::toString() const {

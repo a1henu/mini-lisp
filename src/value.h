@@ -7,6 +7,7 @@
 #include <vector>
 
 class Value;
+class EvalEnv;
 using ValuePtr = std::shared_ptr<Value>;
 
 enum class ValueType {
@@ -37,6 +38,8 @@ public:
     virtual std::optional<double> asNumber() const;
     virtual std::optional<std::string> asString() const;
     virtual std::optional<std::string> asSymbol() const;
+
+    virtual ValuePtr call(const std::vector<ValuePtr>& args, EvalEnv& env) const;
 };
 
 
@@ -113,13 +116,13 @@ public:
 
 
 class BuiltinProcValue : public Value {
-    using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
+    using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
     BuiltinFuncType* func;
 
 public:
     BuiltinProcValue(BuiltinFuncType* func) : Value(ValueType::BUILTIN), func{func} {}
 
-    ValuePtr call(const std::vector<ValuePtr>& args) const;
+    ValuePtr call(const std::vector<ValuePtr>& args, EvalEnv& env) const override;
 
     std::string toString() const override;
 };
@@ -136,7 +139,7 @@ public:
                 std::shared_ptr<EvalEnv> env) : 
         Value(ValueType::LAMBDA), params{params}, body{body}, env{env} {}
 
-    ValuePtr call(const std::vector<ValuePtr>& args, EvalEnv& env) const;
+    ValuePtr call(const std::vector<ValuePtr>& args, EvalEnv& env) const override;
 
     std::string toString() const override;
 };

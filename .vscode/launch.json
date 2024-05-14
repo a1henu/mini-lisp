@@ -7,7 +7,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}\\bin\\mini_lisp.exe",
-      "args": [],
+      "args": ["D:\\23fall-bachelor-lessons\\freshman\\pku-software\\assignments\\mini-lisp\\bin\\test.scm"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "build",

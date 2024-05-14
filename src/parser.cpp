@@ -64,6 +64,12 @@ ValuePtr Parser::parse() {
         break;
     }
 
+    case TokenType::UNQUOTE:
+    {
+        return this->createQuote("unquote");
+        break;
+    }
+
     default:
         throw SyntaxError("Unimplemented.");
         break;

@@ -58,6 +58,7 @@
         "list": "cpp",
         "ranges": "cpp",
         "span": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "fstream": "cpp"
     }
 }

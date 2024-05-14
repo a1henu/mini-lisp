@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -8,35 +9,59 @@
 
 #include "rjsj_test.hpp"
 
-struct TestCtx {
-    std::shared_ptr<EvalEnv> env = std::make_shared<EvalEnv>();
-    std::string eval(std::string input) {
-        auto tokens = Tokenizer::tokenize(input);
-        Parser parser(std::move(tokens));
-        auto value = parser.parse();
-        auto result = env->eval(std::move(value));
-        return result->toString();
-    }
-};
-
-int main() {
-    RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6);
+void process(std::istream& input, bool print_result) {
     std::shared_ptr<EvalEnv> env = std::make_shared<EvalEnv>();
     while (true) {
         try {
-            std::cout << ">>> " ;
+            if (print_result) {
+                std::cout << "\033[31m" << ">>> " << "\033[0m";
+            }
             std::string line;
-            std::getline(std::cin, line);
-            if (std::cin.eof()) {
+            std::getline(input, line);
+            // More than one line
+            // While the number of opening parentheses is greater than the number of closing parentheses
+            while (std::count(line.begin(), line.end(), '(') > std::count(line.begin(), line.end(), ')')) {
+                int n = std::count(line.begin(), line.end(), '(') - std::count(line.begin(), line.end(), ')');
+                if (print_result) {
+                    std::cout << "...";
+                    for (int i = 0; i < n; i++) {
+                        std::cout << "    ";
+                    }
+                }
+                std::string extraLine;
+                std::getline(input, extraLine);
+                line += "\n" + extraLine;
+            }
+            if (!input.eof() || !line.empty()) {
+                auto tokens = Tokenizer::tokenize(line);
+                Parser parser(std::move(tokens));
+                auto value = parser.parse();
+                auto result = env->eval(std::move(value));
+                if (print_result) {
+                    std::cout << result->toString() << std::endl;
+                } 
+            } else {
                 std::exit(0);
             }
-            auto tokens = Tokenizer::tokenize(line);
-            Parser parser(std::move(tokens));
-            auto value = parser.parse();
-            auto result = env->eval(std::move(value));
-            std::cout << result->toString() << std::endl;
+            
         } catch (std::runtime_error& e) {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
+}
+
+int main(int argc, char* argv[]) {
+    if (argc == 1) {
+        // REPL mode
+        process(std::cin, true);
+    } else {
+        // File mode
+        std::ifstream file(argv[1]);
+        if (!file) {
+            std::cerr << "Could not open file " << argv[1] << std::endl;
+            return 1;
+        }
+        process(file, false);
+    }
+    return 0;
 }

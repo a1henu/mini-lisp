@@ -16,6 +16,9 @@ ValuePtr ifForm(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr andForm(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr orForm(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr lambdaForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr condForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr letForm(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr beginForm(const std::vector<ValuePtr>& params, EvalEnv& env);
 
 extern std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS;
 

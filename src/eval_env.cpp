@@ -50,7 +50,7 @@ std::shared_ptr<EvalEnv> EvalEnv::createChild(const std::vector<std::string>& pa
 
 ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
     if (proc->isType(ValueType::BUILTIN)) {
-        return static_cast<BuiltinProcValue*>(proc.get())->call(args);
+        return static_cast<BuiltinProcValue*>(proc.get())->call(args, *this);
     } if (proc->isType(ValueType::LAMBDA)) {
         return static_cast<LambdaValue*>(proc.get())->call(args, *this);
     } else {
@@ -69,31 +69,33 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
 
     } else if (expr->isType(ValueType::PAIR)) {
 
-        auto pairList = static_cast<PairValue*>(expr.get());
-        auto exprs = pairList->toVector();
+        auto pairExpr = static_cast<PairValue*>(expr.get());
+        auto exprVec = pairExpr->toVector();
 
-        if (auto name = pairList->getCar()->asSymbol()) {
+        if (exprVec[0]->isType(ValueType::SYMBOL)) {
+            
+            auto name = exprVec[0]->asSymbol().value();
 
-            if (auto specialForm = SPECIAL_FORMS.find(*name); specialForm != SPECIAL_FORMS.end()) {
+            if (auto specialForm = SPECIAL_FORMS.find(name); specialForm != SPECIAL_FORMS.end()) {
 
-                return (specialForm->second)(pairList->getCdr()->toVector(), *this);
+                return (specialForm->second)(pairExpr->getCdr()->toVector(), *this);
 
-            } else if (auto value = lookup(name.value()); value != nullptr) {
+            } else if (auto value = lookup(name); value != nullptr) {
 
-                ValuePtr proc = eval(exprs[0]);
-                std::vector<ValuePtr> args = evalList(pairList->getCdr());
+                ValuePtr proc = eval(exprVec[0]);
+                std::vector<ValuePtr> args = evalList(pairExpr->getCdr());
                 return this->apply(proc, args);
 
             } else {
 
-                throw LispError("Unfound symbol: " + name.value());
+                throw LispError("Unfound symbol: " + name);
 
             }
 
-        } else if (pairList->getCar()->isType(ValueType::PAIR)) {
+        } else if (exprVec[0]->isType(ValueType::PAIR)) {
         
-            ValuePtr proc = eval(pairList->getCar());
-            std::vector<ValuePtr> args = evalList(pairList->getCdr());
+            ValuePtr proc = eval(exprVec[0]);
+            std::vector<ValuePtr> args = evalList(pairExpr->getCdr());
             return this->apply(proc, args);
 
         } else {
