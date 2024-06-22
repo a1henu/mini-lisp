@@ -33,6 +33,9 @@ void process(std::istream& input, bool print_result) {
                 line += "\n" + extraLine;
             }
             if (!input.eof() || !line.empty()) {
+                if (line.empty()) {
+                    continue;
+                }
                 auto tokens = Tokenizer::tokenize(line);
                 Parser parser(std::move(tokens));
                 auto value = parser.parse();
@@ -53,6 +56,8 @@ void process(std::istream& input, bool print_result) {
 int main(int argc, char* argv[]) {
     if (argc == 1) {
         // REPL mode
+        std::cout << "Welcome to Mini-Lisp Interpreter v1.0.0" << std::endl;
+        std::cout << "Type \"(help)\" for more information, \"(exit n)\" to exit with code n."<< std::endl;
         process(std::cin, true);
     } else {
         // File mode

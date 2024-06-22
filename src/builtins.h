@@ -22,6 +22,8 @@ ValuePtr eval(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr exit(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr newline(const std::vector<ValuePtr>& params, EvalEnv& env);
 ValuePtr print(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr readline(const std::vector<ValuePtr>& params, EvalEnv& env);
+ValuePtr help(const std::vector<ValuePtr>& params, EvalEnv& env);
 
 // type checking library
 extern std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue> > type_checking_builtins;

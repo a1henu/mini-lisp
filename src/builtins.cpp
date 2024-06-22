@@ -7,6 +7,8 @@
 #include "./builtins.h"
 #include "./error.h"
 #include "./eval_env.h"
+#include "./parser.h"
+#include "./tokenizer.h"
 
 std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue> > builtins::builtins;
 
@@ -31,6 +33,8 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue> > builtins::co
     {"exit", std::make_shared<BuiltinProcValue>(&builtins::exit)},
     {"newline", std::make_shared<BuiltinProcValue>(&builtins::newline)},
     {"print", std::make_shared<BuiltinProcValue>(&builtins::print)},
+    {"readline", std::make_shared<BuiltinProcValue>(&builtins::readline)},
+    {"help", std::make_shared<BuiltinProcValue>(&builtins::help)},
 
 };
 
@@ -64,14 +68,16 @@ ValuePtr builtins::apply(const std::vector<ValuePtr>& params, EvalEnv& env) {
 } 
 
 ValuePtr builtins::display(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    if (params.size() < 0 || params.size() > 1) {
-        throw LispError("Print requires one argument.");
+    if (params.size() < 1) {
+        throw LispError("Print requires more than one argument.");
     }
-    if (params[0]->isType(ValueType::STRING)) {
-        std::string str = static_cast<StringValue*>(params[0].get())->asString().value();
-        std::cout << str << std::endl;
-    } else {
-        std::cout << params[0]->toString() << std::endl;
+    for (const auto& i : params) {
+        if (i->isType(ValueType::STRING)) {
+            std::string str = static_cast<StringValue*>(i.get())->asString().value();
+            std::cout << str;
+        } else {
+            std::cout << i->toString();
+        }
     }
     return std::make_shared<NilValue>();
 }
@@ -82,9 +88,9 @@ ValuePtr builtins::displayln(const std::vector<ValuePtr>& params, EvalEnv& env) 
     }
     if (params[0]->isType(ValueType::STRING)) {
         std::string str = static_cast<StringValue*>(params[0].get())->asString().value();
-        std::cout << str << std::endl;
+        std::cout << str;
     } else {
-        std::cout << params[0]->toString() << std::endl;
+        std::cout << params[0]->toString();
     }
     std::cout << std::endl;
     return std::make_shared<NilValue>();
@@ -108,7 +114,7 @@ ValuePtr builtins::exit(const std::vector<ValuePtr>& params, EvalEnv& env) {
     if (params.size() > 1) {
         throw LispError("Exit does not take more than one arguments.");
     }
-    // 以 n 作为进程退出码退出解释流程
+    // Exit the interpreter process with n as the exit code
     std::exit(params.size() == 0 ? 0 : params[0]->asNumber().value());
     return std::make_shared<NilValue>();
 }
@@ -122,10 +128,57 @@ ValuePtr builtins::newline(const std::vector<ValuePtr>& params, EvalEnv& env) {
 }
 
 ValuePtr builtins::print(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    if (params.size() < 0 || params.size() > 1) {
-        throw LispError("Print requires one argument.");
+    if (params.size() < 1) {
+        throw LispError("Print requires more than one argument.");
     }
-    std::cout << params[0]->toString() << std::endl;
+    for (const auto& i : params) {
+        std::cout << i->toString() << std::endl;
+    }
+    return std::make_shared<NilValue>();
+}
+
+ValuePtr builtins::readline(const std::vector<ValuePtr>& params, EvalEnv& env) {
+    if (params.size() > 0) {
+        throw LispError("Read does not take any arguments.");
+    }
+    std::cout << "> ";
+    std::string line;
+    std::getline(std::cin, line);
+    auto tokens = Tokenizer::tokenize(line);
+    Parser parser(std::move(tokens));
+    auto value = parser.parse();
+    auto result = env.eval(std::move(value));
+    return result;
+}
+
+ValuePtr builtins::help(const std::vector<ValuePtr>& params, EvalEnv& env) {
+    if (params.size() > 0) {
+        throw LispError("Help does not take any arguments.");
+    }
+    std::cout << "Welcome to Mini-Lisp Help Utility" << std::endl;
+    std::cout << "Please refer to the documentation for more information." << std::endl;
+    std::cout << "https://pku-software.github.io/mini-lisp-spec/" << std::endl;
+    std::cout << "The following built-in functions are available:" << std::endl;
+    std::cout << "Core functions:" << std::endl;
+    for (const auto& i : builtins::core_builtins) {
+        std::cout << i.first << std::endl;
+    }
+    std::cout << std::endl << "- Type checking functions:" << std::endl;
+    for (const auto& i : builtins::type_checking_builtins) {
+        std::cout << i.first << std::endl;
+    }
+    std::cout << std::endl << "- Cons list functions:" << std::endl;
+    for (const auto& i : builtins::cons_list_builtins) {
+        std::cout << i.first << std::endl;
+    }
+    std::cout << std::endl << "- Math functions:" << std::endl;
+    for (const auto& i : builtins::math_builtins) {
+        std::cout << i.first << std::endl;
+    }
+    std::cout << std::endl << "- Comparison functions:" << std::endl;
+    for (const auto& i : builtins::comparison_builtins) {
+        std::cout << i.first << std::endl;
+    }
     return std::make_shared<NilValue>();
 }
 
@@ -700,6 +753,9 @@ ValuePtr builtins::isEven(const std::vector<ValuePtr>& params, EvalEnv& env) {
     if (!params[0]->isType(ValueType::NUMERIC)) {
         throw LispError("Cannot compare a non-numeric value.");
     }
+    if (std::floor(params[0]->asNumber().value()) != params[0]->asNumber().value()) {
+        throw LispError("Cannot compare a non-integer value.");
+    }
     return std::make_shared<BooleanValue>(static_cast<int>(params[0]->asNumber().value()) % 2 == 0);
 }
 
@@ -709,6 +765,9 @@ ValuePtr builtins::isOdd(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
     if (!params[0]->isType(ValueType::NUMERIC)) {
         throw LispError("Cannot compare a non-numeric value.");
+    }
+    if (std::floor(params[0]->asNumber().value()) != params[0]->asNumber().value()) {
+        throw LispError("Cannot compare a non-integer value.");
     }
     return std::make_shared<BooleanValue>(static_cast<int>(std::abs(params[0]->asNumber().value())) % 2 == 1);
 }
