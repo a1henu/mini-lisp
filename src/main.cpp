@@ -72,7 +72,18 @@ std::string parseArgs(std::vector<std::string> args) {
     return result;
 }
 
+struct TestCtx {
+    std::shared_ptr<EvalEnv> env = std::make_shared<EvalEnv>();
+    std::string eval(std::string input) {
+        auto tokens = Tokenizer::tokenize(input);
+        Parser parser(std::move(tokens));
+        auto value = parser.parse();
+        return env->eval(std::move(value))->toString();
+    }
+};
+
 int main(int argc, char* argv[]) {
+    RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
     if (argc == 1) {
         // REPL mode
         std::cout << "Welcome to Mini-Lisp Interpreter v1.0.0" << std::endl;
