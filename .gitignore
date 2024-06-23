@@ -412,8 +412,8 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Template
-mini_lisp.zip
+# hw
+2300011172-白晨旭.zip
 
 # Checkpoint
 /checkpoint/
