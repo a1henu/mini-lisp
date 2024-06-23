@@ -83,16 +83,17 @@ ValuePtr builtins::display(const std::vector<ValuePtr>& params, EvalEnv& env) {
 }
 
 ValuePtr builtins::displayln(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    if (params.size() < 0 || params.size() > 1) {
-        throw LispError("Print requires one argument.");
+    if (params.size() < 1) {
+        throw LispError("Print requires more than one argument.");
     }
-    if (params[0]->isType(ValueType::STRING)) {
-        std::string str = static_cast<StringValue*>(params[0].get())->asString().value();
-        std::cout << str;
-    } else {
-        std::cout << params[0]->toString();
+    for (const auto& i : params) {
+        if (i->isType(ValueType::STRING)) {
+            std::string str = static_cast<StringValue*>(i.get())->asString().value();
+            std::cout << str << std::endl;
+        } else {
+            std::cout << i->toString() << std::endl;
+        }
     }
-    std::cout << std::endl;
     return std::make_shared<NilValue>();
 }
 

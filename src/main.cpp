@@ -9,8 +9,16 @@
 
 #include "rjsj_test.hpp"
 
-void process(std::istream& input, bool print_result) {
+void process(std::istream& input, bool print_result, std::vector<std::string> args = {"0", ""}) {
     std::shared_ptr<EvalEnv> env = std::make_shared<EvalEnv>();
+    args[0] = "(define argc " + args[0] + ")";
+    args[1] = "(define argv (list" + args[1] + "))";
+    for (auto line : args){ // Define argc and argv
+        auto tokens = Tokenizer::tokenize(line);
+        Parser parser(std::move(tokens));
+        auto value = parser.parse();
+        env->eval(std::move(value));
+    }
     while (true) {
         try {
             if (print_result) {
@@ -33,7 +41,7 @@ void process(std::istream& input, bool print_result) {
                 line += "\n" + extraLine;
             }
             if (!input.eof() || !line.empty()) {
-                if (line.empty()) {
+                if (line.empty() || line[0] == ';') {
                     continue;
                 }
                 auto tokens = Tokenizer::tokenize(line);
@@ -53,6 +61,17 @@ void process(std::istream& input, bool print_result) {
     }
 }
 
+std::string parseArgs(std::vector<std::string> args) {
+    std::string result = "";
+    for (int i = 0; i < args.size(); i++) {
+        result += "\"" + args[i] + "\"";
+        if (i != args.size() - 1) {
+            result += " ";
+        }
+    }
+    return result;
+}
+
 int main(int argc, char* argv[]) {
     if (argc == 1) {
         // REPL mode
@@ -61,12 +80,29 @@ int main(int argc, char* argv[]) {
         process(std::cin, true);
     } else {
         // File mode
+        std::vector<std::string> args;
+        if (argc > 2) {
+            std::string result(argv[1]);
+            size_t pos = 0;
+            while ((pos = result.find('\\', pos)) != std::string::npos) {
+                result.insert(pos, "\\");
+                pos += 2; 
+            }
+            args.push_back(result);
+            for (int i = 2; i < argc; i++) {
+                args.push_back(std::string(argv[i]));
+            }
+        }
         std::ifstream file(argv[1]);
         if (!file) {
             std::cerr << "Could not open file " << argv[1] << std::endl;
             return 1;
         }
-        process(file, false);
+        if (args.empty()) {
+            process(file, false);
+        } else {
+            process(file, false, std::vector({std::to_string(args.size()), parseArgs(args)}));
+        }
     }
     return 0;
 }
