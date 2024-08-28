@@ -83,7 +83,9 @@ struct TestCtx {
 };
 
 int main(int argc, char* argv[]) {
-    // RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
+#ifdef __TEST
+    RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
+#endif
     if (argc == 1) {
         // REPL mode
         std::cout << "Welcome to Mini-Lisp Interpreter v1.0.0" << std::endl;

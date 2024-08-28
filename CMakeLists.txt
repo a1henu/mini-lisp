@@ -4,6 +4,10 @@ project(mini_lisp)
 
 aux_source_directory(src SOURCES)
 add_executable(mini_lisp ${SOURCES})
+
+# Test mode
+# add_compile_definitions(__TEST)
+
 set_target_properties(
   mini_lisp
   PROPERTIES CXX_STANDARD 20

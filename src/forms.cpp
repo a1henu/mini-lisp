@@ -21,6 +21,10 @@ std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS = {
 };
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    if (args.empty()) {
+        throw LispError("define requires two argument.");
+    }
+
     if (args[0]->isType(ValueType::PAIR)) {
 
         auto pair = static_cast<PairValue*>(args[0].get());
@@ -32,8 +36,7 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
         return std::make_shared<NilValue>();
     
     } else {
-
-        if (args.size() != 2) {
+        if (args.size() < 2) {
             throw LispError("define requires exactly two arguments.");
         }
         if (auto name = args[0]->asSymbol()) {
