@@ -38,3 +38,6 @@ cmake --build build
 cd bin
 ./mini-lisp
 ```
+
+## Appendix
+For more information, please check the [mid-term project document](https://pku-software.github.io/project-doc/) in the course website
